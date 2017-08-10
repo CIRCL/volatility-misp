@@ -7,7 +7,6 @@ import volatility.debug as debug
 import volatility.utils as utils
 from volatility.renderers import TreeGrid
 from volatility.renderers.basic import Address, Bytes
-import ConfigParser
 
 with warnings.catch_warnings():
     warnings.simplefilter("ignore")
@@ -179,34 +178,14 @@ class MISPScan(YaraScanMulti):
         config.remove_option('YARA-FILE')
         config.remove_option('YARA-FOLDER')
 
-    # TODO: use the volatility user's profile instead of a separate config file
     # TODO: fix issues with temp folder deletion
     def calculate(self):
         try:
-            if self._config.MISP_CONFIG:
-                config_file = ConfigParser.ConfigParser()
-                config_file.readfp(open(self._config.MISP_CONFIG))
-
-            if self._config.MISP_CONFIG and config_file.has_option('MISP', 'server'):
-                server = config_file.get('MISP', 'server')
-            else:
-                server = self._config.SERVER
-            if self._config.MISP_CONFIG and config_file.has_option('MISP', 'key'):
-                key = config_file.get('MISP', 'key')
-            else:
-                key = self._config.KEY
-            if self._config.MISP_CONFIG and config_file.has_option('MISP', 'rulesfolder'):
-                rulesfolder = config_file.get('MISP', 'rulesfolder')
-            else:
-                rulesfolder = self._config.RULESFOLDER
-            if self._config.MISP_CONFIG and config_file.has_option('MISP', 'keeptemp'):
-                keep_temp = config_file.get('MISP', 'keeptemp')
-            else:
-                keep_temp = self._config.KEEPTEMP
-            if self._config.MISP_CONFIG and config_file.has_option('MISP', 'ignore_ids_flag'):
-                ignore_ids_flag = config_file.get('MISP', 'ignore_ids_flag')
-            else:
-                ignore_ids_flag = self._config.IGNORE_IDS_FLAG
+            server = self._config.SERVER
+            key = self._config.KEY
+            rulesfolder = self._config.RULESFOLDER
+            keep_temp = self._config.KEEPTEMP
+            ignore_ids_flag = self._config.IGNORE_IDS_FLAG
 
             if not server or not key or not rulesfolder:
                 raise Exception('Parameters --server, --key and --rulesfolder are required, either as arguments or in the config file')
