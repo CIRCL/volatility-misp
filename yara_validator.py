@@ -36,12 +36,16 @@ class YaraValidator:
             rule = rule.encode('utf-8')
         yarainclude_namespace = kwargs['yarainclude_namespace'] if 'yarainclude_namespace' in kwargs else None
         yarainclude_filename = kwargs['yarainclude_name'] if 'yarainclude_name' in kwargs else None
+        inject_in_meta = kwargs['inject_in_meta'] if 'inject_in_meta' in kwargs else None
         add_to_namespace = True if 'yarainclude_name' in kwargs else False
         if self._allow_includes:
             self.__chdir(self._temp_folder, str(yarainclude_namespace))
         try:
             self._yara_python23_compile(rule)
             if add_to_namespace:
+                if inject_in_meta:
+                    for k in inject_in_meta:
+                        rule = rule.replace('meta:', 'meta:\n{}="{}"'.format(k, inject_in_meta[k]))
                 if not yarainclude_filename:
                     encoded_rule = rule if six.PY2 else rule.encode('utf-8')
                     yarainclude_filename = hashlib.sha256(encoded_rule).hexdigest() + '.yara'

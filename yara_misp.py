@@ -70,7 +70,8 @@ class YaraMISP:
         for attr in self.raw_yara_attributes_buffer:
             status, message = yara_validator.validate(attr.value,
                                                       yarainclude_name=attr.yaramisp_yarainclude_name,
-                                                      yarainclude_namespace=attr.yaramisp_yarainclude_namespace)
+                                                      yarainclude_namespace=attr.yaramisp_yarainclude_namespace,
+                                                      inject_in_meta={'MISP': '{}/events/view/{}'.format(self._server, attr.event_id)})
             if status == yaravalidator.YaraValidator.STATUS_VALID:
                 attr.yaramisp_status = 'VALID'
                 self.valid_yara_attributes.append(attr)

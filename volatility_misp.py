@@ -62,13 +62,17 @@ class YaraScanMulti(malfind.YaraScan):
                     for name in files:
                         full_rules_file_name = os.path.join(path, name)
                         rules_files_dict[full_rules_file_name] = full_rules_file_name
-                rules = yara.compile(filepaths=rules_files_dict)
+                rules = self._compile_yara_files_dict(rules_files_dict)
             else:
                 debug.error("You must specify a string (-Y) or a rules file (-y) or a folder containing rules files (--yara-folder)")
         except yara.SyntaxError as why:
             debug.error("Cannot compile rules: {0}".format(str(why)))
 
         return rules
+
+    def _compile_yara_files_dict(self, files_dict):
+        # FIXME imports may fail because working folder and rule folder are not the same, needs deeper testing
+        return yara.compile(filepaths=files_dict)
 
     def render_text(self, outfd, data):
         #  if not multifiles mode, delegate to yarascan module
@@ -167,8 +171,6 @@ class MISPScan(YaraScanMulti):
                           default=None, action='store', type='str')
         config.add_option("RULESFOLDER", help="Folder for (temporary) rules storage",
                           default=None, action='store', type='str')
-        config.add_option("MISP-CONFIG", help="MISP module config file",
-                          default=None, action='store', type='str')
         config.add_option("KEEPTEMP", help="Do not delete temp after treating the rules",
                           default=False, action="store_true")
         config.add_option("IGNORE-IDS-FLAG", help="Fetch all yara attributes from MISP, regardless of the 'IDS' flag",
@@ -211,12 +213,5 @@ class MISPScan(YaraScanMulti):
 
     def _compile_rules(self):
         compiled_rules = YaraScanMulti._compile_rules(self)
-        self.yara_misp = None  # allows deletion of the rules folder
+        self.yara_misp = None  # allows deletion of the rules folder via garbage collector
         return compiled_rules
-
-
-
-
-
-
-
