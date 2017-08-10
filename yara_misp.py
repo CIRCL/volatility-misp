@@ -49,8 +49,8 @@ class YaraMISP:
             for attr in all_yara_attrs:
                 misp_attribute = MISPAttribute()
                 misp_attribute.set_all_values(**attr)
-                misp_attribute.yaramisp_filename = self.__get_yara_filename(misp_attribute.comment)
-                misp_attribute.yaramisp_namespace = misp_attribute.event_id
+                misp_attribute.yaramisp_yarainclude_name = self.__get_yara_filename(misp_attribute.comment)
+                misp_attribute.yaramisp_yarainclude_namespace = misp_attribute.event_id
                 if misp_attribute.event_id not in exclude_events:
                     self.raw_yara_attributes.append(misp_attribute)
                     self.raw_yara_attributes_buffer.append(misp_attribute)
@@ -69,8 +69,8 @@ class YaraMISP:
         # try to compile each rule separately
         for attr in self.raw_yara_attributes_buffer:
             status, message = yara_validator.validate(attr.value,
-                                                      store_as=attr.yaramisp_filename,
-                                                      namespace=attr.yaramisp_namespace)
+                                                      yarainclude_name=attr.yaramisp_yarainclude_name,
+                                                      yarainclude_namespace=attr.yaramisp_yarainclude_namespace)
             if status == yaravalidator.YaraValidator.STATUS_VALID:
                 attr.yaramisp_status = 'VALID'
                 self.valid_yara_attributes.append(attr)
@@ -89,8 +89,8 @@ class YaraMISP:
                 previous_error = attr.yaramisp_temporary_error
                 repair_suggestion = yara_validator.suggest_repair(previous_suggestion, previous_error)
                 new_status, new_message = yara_validator.validate(repair_suggestion,
-                                                                  # store_as=attr.yaramisp_filename,
-                                                                  namespace=attr.yaramisp_namespace)
+                                                                  # yarainclude_name=attr.yaramisp_yarainclude_name,
+                                                                  yarainclude_namespace=attr.yaramisp_yarainclude_namespace)
                 if new_status == yaravalidator.YaraValidator.STATUS_VALID:
                     if original_rule == repair_suggestion:  # simple missing dependency, no edit was made
                         attr.yaramisp_status = 'VALID'

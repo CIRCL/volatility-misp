@@ -34,28 +34,28 @@ class YaraValidator:
     def validate(self, rule, **kwargs):
         if six.PY2:
             rule = rule.encode('utf-8')
-        namespace = kwargs['namespace'] if 'namespace' in kwargs else None
-        filename = kwargs['store_as'] if 'store_as' in kwargs else None
-        store_if_valid = True if 'store_as' in kwargs else False
+        yarainclude_namespace = kwargs['yarainclude_namespace'] if 'yarainclude_namespace' in kwargs else None
+        yarainclude_filename = kwargs['yarainclude_name'] if 'yarainclude_name' in kwargs else None
+        add_to_namespace = True if 'yarainclude_name' in kwargs else False
         if self._allow_includes:
-            self.__chdir(self._temp_folder, str(namespace))
+            self.__chdir(self._temp_folder, str(yarainclude_namespace))
         try:
             self._yara_python23_compile(rule)
-            if store_if_valid:
-                if not filename:
+            if add_to_namespace:
+                if not yarainclude_filename:
                     encoded_rule = rule if six.PY2 else rule.encode('utf-8')
-                    filename = hashlib.sha256(encoded_rule).hexdigest() + '.yara'
-                f = open(filename, 'w')
+                    yarainclude_filename = hashlib.sha256(encoded_rule).hexdigest() + '.yara'
+                f = open(yarainclude_filename, 'w')
                 f.write(rule)
                 f.close()
             return self.STATUS_VALID, None
         except yara.SyntaxError as e:
-            # if store_if_valid:
+            # if add_to_namespace:
             #     self.__chdir('.', '__BROKEN__')
-            #     if not filename:
+            #     if not yarainclude_filename:
             #         encoded_rule = rule if six.PY2 else rule.encode('utf-8')
-            #         filename = hashlib.sha256(encoded_rule).hexdigest() + '.yara'
-            #     f = open(filename, 'w+')
+            #         yarainclude_filename = hashlib.sha256(encoded_rule).hexdigest() + '.yara'
+            #     f = open(yarainclude_filename, 'w+')
             #     offsetted_line_number = int(re.search('^line ([0-9]+).*', str(e)).group(1))
             #     offsetted_line_number += 4
             #     f.write('// -------- BROKEN -------\n// {}\n// Note: line {} taking this comment into account\n\n{}\n\n'
@@ -68,9 +68,9 @@ class YaraValidator:
                 self.__chdir_revert()
 
     # if error_message is set, rule will not be re-compiled with yara. Therefore, the namespace will have no incidence
-    def suggest_repair(self, rule, error_msg=None, namespace=None):
+    def suggest_repair(self, rule, error_msg=None, yarainclude_namespace=None):
         if not error_msg:
-            _, error_msg = self.validate(rule, namespace=namespace)
+            _, error_msg = self.validate(rule, yarainclude_namespace=yarainclude_namespace)
         common_misspelled_keywords = {
             u'Rule ': u'rule ',
             u'Meta:': u'meta:',
