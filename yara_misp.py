@@ -30,6 +30,7 @@ class YaraMISP:
         self._key = key
         self.temporary_dir = temporary_dir
         self.keep_temp = keep_temp
+        self._yara_validator = yaravalidator.YaraValidator(True, self.temporary_dir, self.keep_temp)
         self.raw_yara_attributes = []
         self.raw_yara_attributes_buffer = []
         self.valid_yara_attributes = []
@@ -63,7 +64,7 @@ class YaraMISP:
     def check_all(self):
 
         broken_attributes_buffer = []
-        yara_validator = yaravalidator.YaraValidator(True, self.temporary_dir, self.keep_temp)
+        yara_validator = self._yara_validator
 
         # try to compile each rule separately
         for attr in self.raw_yara_attributes_buffer:

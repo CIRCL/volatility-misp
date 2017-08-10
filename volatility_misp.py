@@ -178,7 +178,8 @@ class MISPScan(YaraScanMulti):
         config.remove_option('YARA-FILE')
         config.remove_option('YARA-FOLDER')
 
-    # TODO: fix issues with temp folder deletion
+        self.yara_misp = None
+
     def calculate(self):
         try:
             server = self._config.SERVER
@@ -191,11 +192,11 @@ class MISPScan(YaraScanMulti):
                 raise Exception('Parameters --server, --key and --rulesfolder are required, either as arguments or in the config file')
 
             print('Connecting to server: {}'.format(server))
-            yara_misp = yaramisp.YaraMISP(server, key, rulesfolder, True)
+            self.yara_misp = yaramisp.YaraMISP(server, key, rulesfolder, keep_temp)
             print('Fetching rules')
-            yara_misp.fetch_misp_rules(to_ids=not ignore_ids_flag)
+            self.yara_misp.fetch_misp_rules(to_ids=not ignore_ids_flag)
             print('Checking rules integrity')
-            _, _, _, summary = yara_misp.check_all()
+            _, _, _, summary = self.yara_misp.check_all()
             print(summary)
 
             self._config.update('YARA_FOLDER', rulesfolder)
@@ -207,6 +208,12 @@ class MISPScan(YaraScanMulti):
         except Exception as e:
             print(str(e))
             exit()
+
+    def _compile_rules(self):
+        compiled_rules = YaraScanMulti._compile_rules(self)
+        self.yara_misp = None  # allows deletion of the rules folder
+        return compiled_rules
+
 
 
 
